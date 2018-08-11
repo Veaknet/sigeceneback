@@ -77,7 +77,8 @@ class QuestionController extends MasterController
      */
     public function show($id)
     {
-        //
+        $question = Question::find($id);
+        return $this->returnResponse($question->toArray(), 'Question returned successfully.');
     }
 
     /**
