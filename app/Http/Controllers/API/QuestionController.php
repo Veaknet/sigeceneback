@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Question;
+use App\TypeQuestion;
 use App\Answer;
 use Validator;
 
@@ -22,7 +23,7 @@ class QuestionController extends MasterController
     public function index()
     {
         $user_id = Auth::id();
-        $questions = Question::with('answers')->where('user_id', $user_id)->get();
+        $questions = Question::with(['answers', 'typeQuestion'])->where('user_id', $user_id)->get();
 
         return $this->returnResponse($questions->toArray(), 'Question returned successfully.');
     }
@@ -36,8 +37,12 @@ class QuestionController extends MasterController
     public function store(Request $request)
     {
         $id = Auth::id();
+        $user = Auth::user();
         $input = $request->all();
+        $type = TypeQuestion::find($input['type_question_id']);
 
+        //dd($input['question']);
+        //die();
         $validator = Validator::make($input, [
             'question' => 'required'
         ]);
@@ -45,17 +50,23 @@ class QuestionController extends MasterController
         if($validator->fails()){
             return $this->returnError('Validation Error.', $validator->errors());   
         }
+        
+        $question = new Question($input['question']);
+        $question->user()->associate($user);
+        $question->typeQuestion()->associate($type);
 
         //$question = Question::forceCreate($input);
-
-        if($question = Question::forceCreate($input['question'])) {
+        //$user->structures()->create($input['structure'])) {
+        if($question->save()) {
             //$inquiry = Question::find($question->id);
             //dd($input['answers']);
             //die();
-            foreach ($input['answers'] as $answer) {
-                $response = $question->answers()->create([
-                    'answer' => $answer,
-                ]);
+            if($input['answers']) {
+                foreach ($input['answers'] as $answer) {
+                    $response = $question->answers()->create([
+                        'answer' => $answer,
+                    ]);
+                }
             }
             
             return $this->returnResponse($question->toArray(), 'Question returned successfully.');
@@ -77,7 +88,8 @@ class QuestionController extends MasterController
      */
     public function show($id)
     {
-        $question = Question::find($id);
+        $question = Question::with(['answers', 'typeQuestion'])->find($id);
+        //$question = Question::find($id);
         return $this->returnResponse($question->toArray(), 'Question returned successfully.');
     }
 
@@ -90,7 +102,48 @@ class QuestionController extends MasterController
      */
     public function update(Request $request, $id)
     {
-        //
+        $question = Question::find($id);
+        //$user_id = Auth::id();
+        $user = Auth::user();
+        $input = $request->all();
+        $type = TypeQuestion::find($input['type_question_id']);
+
+        //dump($request->all());
+        //die();
+        $validator = Validator::make($input['question'], [
+            'question' => 'required'
+        ]);
+
+        if($validator->fails()){
+            return $this->returnError('Validation Error.', $validator->errors());   
+        }
+        
+        //$question = $input['question'];
+        $question->question = $input['question']['question'];
+        //$question->user()->associate($user);
+        $question->typeQuestion()->associate($type);
+
+        //$question = Question::forceCreate($input);
+        //$user->structures()->create($input['structure'])) {
+        if($question->save()) {
+            //$inquiry = Question::find($question->id);
+            //dd($input['answers']);
+            //die();
+            if($input['answers']) {
+                foreach ($input['answers'] as $answer) {
+                    $response = $question->answers()->create([
+                        'answer' => $answer,
+                    ]);
+                }
+            }
+            
+            return $this->returnResponse($question->toArray(), 'Question returned successfully.');
+        }else {
+            return $this->returnError('La pregunta no pudo ser guardada, intente de nuevo');
+        }
+
+        return response()->json($question->toArray(), 200);
+
     }
 
     /**
@@ -101,6 +154,16 @@ class QuestionController extends MasterController
      */
     public function destroy($id)
     {
-        //
+        $question = Question::find($id);
+
+        // delete related   
+        $question->answers()->delete();
+        $question->structures()->detach();
+        //$user->delete();
+        if($question = $question->delete()) {
+            return $this->returnResponse($question, 'Question delete successfully.');
+        }else {
+            return $this->returnError('La pregunta no pudo ser eliminada, intente de nuevo');
+        }
     }
 }

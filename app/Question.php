@@ -15,6 +15,11 @@ class Question extends Model
         return $this->belongsTo('App\User');
     }
 
+    public function typeQuestion()
+    {
+        return $this->belongsTo('App\TypeQuestion');
+    }
+
     public function answers()
     {
         return $this->hasMany('App\Answer');
@@ -22,6 +27,6 @@ class Question extends Model
 
     public function structures()
     {
-        return $this->belongsToMany('App\Strucure');
+        return $this->belongsToMany('App\Structure');
     }
 }

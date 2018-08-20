@@ -25,7 +25,8 @@ Route::middleware('auth:api')->group(function () {
 
 	Route::apiResources([
 		'questions' => 'API\QuestionController',
-		'structures' => 'API\StructureController'
+		'structures' => 'API\StructureController',
+		'typequestion' => 'API\TypeQuestionController'
 	]);
 });
 
