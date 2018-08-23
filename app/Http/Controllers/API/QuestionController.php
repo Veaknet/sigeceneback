@@ -43,7 +43,7 @@ class QuestionController extends MasterController
 
         //dd($input['question']);
         //die();
-        $validator = Validator::make($input, [
+        $validator = Validator::make($input['question'], [
             'question' => 'required'
         ]);
 
@@ -122,7 +122,7 @@ class QuestionController extends MasterController
         $question->question = $input['question']['question'];
         //$question->user()->associate($user);
         $question->typeQuestion()->associate($type);
-
+        $question->answers()->delete();
         //$question = Question::forceCreate($input);
         //$user->structures()->create($input['structure'])) {
         if($question->save()) {
@@ -132,7 +132,7 @@ class QuestionController extends MasterController
             if($input['answers']) {
                 foreach ($input['answers'] as $answer) {
                     $response = $question->answers()->create([
-                        'answer' => $answer,
+                        'answer' => $answer['answer'],
                     ]);
                 }
             }
