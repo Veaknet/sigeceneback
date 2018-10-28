@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class TypeQuestion extends Model
 {
-	protected $table = 'type_question';
+	protected $table = 'type_questions';
 
 	protected $fillable = [
-        'name'
+        'name','status'
     ];
 
     public function questions()
